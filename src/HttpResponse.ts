@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { Result, validationResult } from "express-validator/check";
 import { HttpStatus } from "./HttpStatus";
-import { wrapInArray } from "./Utils";
-import { isString } from "./Utils";
+import { isString } from "@blendsdk/stdlib/dist/isString";
+import { wrapInArray } from "@blendsdk/stdlib/dist/wrapInArray";
 
 /**
  * Http Response Wrapper

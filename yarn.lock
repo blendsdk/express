@@ -140,6 +140,13 @@
     shelljs "^0.8.3"
     tslib "^1.10.0"
 
+"@blendsdk/stdlib@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@blendsdk/stdlib/-/stdlib-1.0.4.tgz#a0a040874238e8b457c0e281c46beedcb2e9dc61"
+  integrity sha512-4MkoUR5VGxy3N+pAHm8stT9XVeAGJ9tt5hNULeAJlPyijxbHEKwL7wWKuwsA1cUnibZtbdWq/80SBEGfTVbjgA==
+  dependencies:
+    tslib "^1.10.0"
+
 "@cnakazawa/watch@^1.0.3":
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/@cnakazawa/watch/-/watch-1.0.3.tgz#099139eaec7ebf07a27c1786a3ff64f39464d2ef"
