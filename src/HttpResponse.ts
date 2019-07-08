@@ -1,8 +1,25 @@
 import { Request, Response } from "express";
-import { Result, validationResult } from "express-validator/check";
+import { validationResult, Result } from "express-validator";
 import { HttpStatus } from "./HttpStatus";
 import { isString } from "@blendsdk/stdlib/dist/isString";
-import { wrapInArray } from "@blendsdk/stdlib/dist/wrapInArray";
+
+/**
+ * Type describing a Request and Response handler
+ */
+export type TRequestHandler = (req?: Request, res?: Response) => void
+
+/**
+ * Interface describing an Error Response
+ *
+ * @export
+ * @interface IResponseError
+ */
+export interface IResponseError {
+    error?: boolean;
+    code?: number;
+    type?: string;
+    content: any
+}
 
 /**
  * Http Response Wrapper
@@ -51,6 +68,13 @@ export class HttpResponse {
         return this.response.status(HttpStatus.Success.OK).json(data);
     }
 
+    protected parseError(error: Error | string): any {
+        const err: Error = isString(error) ? new Error(error as string) : error as Error
+        return {
+            ...err
+        }
+    }
+
     /**
      * Creates a validation error response.
      *
@@ -59,7 +83,12 @@ export class HttpResponse {
      * @memberof HttpResponse
      */
     public validationError(errors: Result<any>) {
-        return this.error(HttpStatus.ClientErrors.BadRequest, errors.array());
+        debugger;
+        return this.error({
+            code: HttpStatus.ClientErrors.BadRequest,
+            type: "VALIDATION_ERROR",
+            content: errors.array()
+        });
     }
 
     /**
@@ -70,19 +99,9 @@ export class HttpResponse {
      * @returns {Response}
      * @memberof HttpResponse
      */
-    public error(code: number, error: any | any[]): Response {
-        if (isString(error)) {
-            error = {
-                message: error
-            };
-        }
-        return this.response.status(code).json({
-            error: true,
-            messages: wrapInArray({
-                ...error,
-                message: error.message || "No message provided"
-            })
-        });
+    public error(err: IResponseError): Response {
+        err.error = true;
+        return this.response.status(err.code).json(err);
     }
 
     /**
@@ -92,8 +111,12 @@ export class HttpResponse {
      * @returns {Response}
      * @memberof HttpResponse
      */
-    public serverError(error: any | any[]): Response {
-        return this.error(HttpStatus.ServerErrors.InternalServerError, error);
+    public serverError(error: Error | string): Response {
+        return this.error({
+            code: HttpStatus.ServerErrors.InternalServerError,
+            type: "SERVER_ERROR",
+            content: this.parseError(error)
+        });
     }
 
     /**
@@ -103,43 +126,35 @@ export class HttpResponse {
      * @returns {Response}
      * @memberof HttpResponse
      */
-    public unAuthorized(error: any | any[]): Response {
-        return this.error(HttpStatus.ClientErrors.Unauthorized, error);
+    public unAuthorized(error: Error | string): Response {
+        return this.error({
+            code: HttpStatus.ClientErrors.Unauthorized,
+            type: "AUTH_ERROR",
+            content: this.parseError(error)
+        });
     }
 }
 
 /**
- * Handles a request with express validation
+ * Higher order function for providing field validation check.
  *
  * @export
- * @param {Request} req
- * @param {Response} res
- * @param {(req?: Request, res?: Response) => Promise<Response>} callback
- * @returns {Promise<Response>}
+ * @param {TRequestHandler} callback
+ * @returns {Function}
  */
-export function withValidation(
-    request: Request,
-    // tslint:disable-next-line:align
-    callback: (req?: Request, res?: Response) => Promise<Response>
-): Promise<Response> {
-    const resp: Response = request.res;
-    return new Promise((resolve, reject) => {
+export function withRequestValidation(callback: TRequestHandler): Function {
+    return (req: Request, res: Response) => {
         try {
-            const errors = validationResult(request);
+            let errors = validationResult(req);
             if (errors.isEmpty()) {
-                resolve(callback(request, resp));
+                callback(req, res);
             } else {
-                resolve(response(resp).validationError(errors));
+                response(res).validationError(errors);
             }
         } catch (err) {
-            reject(
-                response(resp).error(
-                    HttpStatus.ServerErrors.InternalServerError,
-                    err
-                )
-            );
+            response(res).serverError(err)
         }
-    });
+    }
 }
 
 /**
