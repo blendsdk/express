@@ -18,7 +18,7 @@ export interface IResponseError {
     error?: boolean;
     code?: number;
     type?: string;
-    content: any
+    message: any
 }
 
 /**
@@ -87,7 +87,7 @@ export class HttpResponse {
         return this.error({
             code: HttpStatus.ClientErrors.BadRequest,
             type: "VALIDATION_ERROR",
-            content: errors.array()
+            message: errors.array()
         });
     }
 
@@ -115,7 +115,7 @@ export class HttpResponse {
         return this.error({
             code: HttpStatus.ServerErrors.InternalServerError,
             type: "SERVER_ERROR",
-            content: this.parseError(error)
+            message: this.parseError(error)
         });
     }
 
@@ -130,7 +130,7 @@ export class HttpResponse {
         return this.error({
             code: HttpStatus.ClientErrors.Unauthorized,
             type: "AUTH_ERROR",
-            content: this.parseError(error)
+            message: this.parseError(error)
         });
     }
 }
