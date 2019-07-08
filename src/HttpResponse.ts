@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, RequestHandler } from "express";
 import { validationResult, Result } from "express-validator";
 import { HttpStatus } from "./HttpStatus";
 import { isString } from "@blendsdk/stdlib/dist/isString";
@@ -142,7 +142,7 @@ export class HttpResponse {
  * @param {TRequestHandler} callback
  * @returns {Function}
  */
-export function withRequestValidation(callback: TRequestHandler): Function {
+export function withRequestValidation(callback: TRequestHandler): RequestHandler {
     return (req: Request, res: Response) => {
         try {
             let errors = validationResult(req);
