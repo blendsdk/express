@@ -2,6 +2,7 @@ import { Request, Response, RequestHandler } from "express";
 import { validationResult, Result } from "express-validator";
 import { HttpStatus } from "./HttpStatus";
 import { isString } from "@blendsdk/stdlib/dist/isString";
+import { getLogger } from "./Logger";
 
 /**
  * Type describing a Request and Response handler
@@ -101,6 +102,9 @@ export class HttpResponse {
      */
     public error(err: IResponseError): Response {
         err.error = true;
+        if (getLogger()) {
+            getLogger().error(err);
+        }
         return this.response.status(err.code).json(err);
     }
 
