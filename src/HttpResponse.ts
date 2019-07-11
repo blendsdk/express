@@ -72,7 +72,10 @@ export class HttpResponse {
     protected parseError(error: Error | string): any {
         const err: Error = isString(error) ? new Error(error as string) : error as Error
         return {
-            ...err
+            ...err,
+            message: err.message,
+            name: err.name,
+            stack: err.stack
         }
     }
 
