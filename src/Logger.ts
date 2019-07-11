@@ -1,5 +1,4 @@
 import winston from "winston";
-import { isString } from "@blendsdk/stdlib/dist/isString";
 
 /** */
 let _logger: winston.Logger;
