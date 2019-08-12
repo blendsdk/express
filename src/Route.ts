@@ -1,4 +1,4 @@
-import { forEach, isNullOrUndefDefault, wrapInArray } from "@blendsdk/stdlib";
+import { forEach, IDictionary, isNullOrUndefDefault, wrapInArray } from "@blendsdk/stdlib";
 import { Express, Request, Response } from "express";
 import { RequestHandler } from "express-serve-static-core";
 import { check, param, ValidationChain } from "express-validator";
@@ -16,7 +16,7 @@ export type TRouteParameter = "string" | "number" | "boolean";
 /**
  * Type describing a controller method
  */
-export type TRouteController = (req: Request, res: Response) => Promise<void> | HttpResponse;
+export type TRouteController = (req: Request, res: Response) => Promise<any>;
 
 /**
  * Interface describing a route parameter
@@ -29,6 +29,8 @@ export interface IRouteParameter {
     message?: string;
     optional?: boolean;
 }
+
+export interface IRouteResponse {}
 
 /**
  * Interface describing a route
@@ -45,6 +47,7 @@ export interface IRoute {
     parameters: {
         [name: string]: IRouteParameter;
     };
+    response?: IRouteResponse;
 }
 
 /**
@@ -95,7 +98,6 @@ function buildHandlers(route: IRoute): RequestHandler[] {
     // set parameter validation
     Object.keys(route.parameters).forEach((paramName: string) => {
         const param: IRouteParameter = route.parameters[paramName];
-        console.log(param);
         const checker = check(paramName, param.message);
         checkSetParameterType(checker, param);
         checkSetOptionalParameter(checker, param);

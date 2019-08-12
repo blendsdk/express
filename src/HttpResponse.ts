@@ -16,11 +16,11 @@ export type TRequestHandler = (req?: Request, res?: Response) => void;
  * @export
  * @interface IResponseError
  */
-export interface IResponseError {
+export interface IErrorResponse<T> {
     error?: boolean;
     code?: number;
     type?: string;
-    message: any;
+    message: T;
 }
 
 /**
@@ -104,7 +104,7 @@ export class HttpResponse {
      * @returns {Response}
      * @memberof HttpResponse
      */
-    public error(err: IResponseError): Response {
+    public error(err: IErrorResponse<any>): Response {
         err.error = true;
         logger.error(err);
         return this.response.status(err.code).json(err);
