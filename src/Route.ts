@@ -79,7 +79,7 @@ function checkSetParameterType(checker: ValidationChain, param: IRouteParameter)
 }
 
 /**
- * Build route handler pabsed on an IRoute configuration
+ * Build route handler based on an IRoute configuration
  *
  * @param {IRoute} route
  * @returns {RequestHandler[]}
