@@ -1,13 +1,14 @@
-import { Request, Response, RequestHandler } from "express";
-import { validationResult, Result } from "express-validator";
-import { HttpStatus } from "./HttpStatus";
+import { apply } from "@blendsdk/stdlib";
 import { isString } from "@blendsdk/stdlib/dist/isString";
+import { Request, RequestHandler, Response } from "express";
+import { Result, validationResult } from "express-validator";
+import { HttpStatus } from "./HttpStatus";
 import { logger } from "./Logger";
 
 /**
  * Type describing a Request and Response handler
  */
-export type TRequestHandler = (req?: Request, res?: Response) => void
+export type TRequestHandler = (req?: Request, res?: Response) => void;
 
 /**
  * Interface describing an Error Response
@@ -19,7 +20,7 @@ export interface IResponseError {
     error?: boolean;
     code?: number;
     type?: string;
-    message: any
+    message: any;
 }
 
 /**
@@ -70,13 +71,13 @@ export class HttpResponse {
     }
 
     protected parseError(error: Error | string): any {
-        const err: Error = isString(error) ? new Error(error as string) : error as Error
+        const err: Error = isString(error) ? new Error(error as string) : (error as Error);
         return {
             ...err,
             message: err.message,
             name: err.name,
             stack: err.stack
-        }
+        };
     }
 
     /**
@@ -150,16 +151,16 @@ export class HttpResponse {
 export function withRequestValidation(callback: TRequestHandler): RequestHandler {
     return (req: Request, res: Response) => {
         try {
-            let errors = validationResult(req);
+            const errors = validationResult(req);
             if (errors.isEmpty()) {
                 callback(req, res);
             } else {
                 response(res).validationError(errors);
             }
         } catch (err) {
-            response(res).serverError(err)
+            response(res).serverError(err);
         }
-    }
+    };
 }
 
 /**

@@ -23,15 +23,19 @@
   },
   "dependencies": {
     "@blendsdk/stdlib": "^1.0.5",
+    "@types/jsonwebtoken": "^8.3.3",
     "@types/node": "^12.6.1",
     "express": "^4.17.1",
     "express-validator": "^6.1.1",
+    "jsonwebtoken": "^8.5.1",
     "tslib": "^1.10.0",
     "typescript": "^3.5.2",
     "winston": "^3.2.1"
   },
   "devDependencies": {
     "@blendsdk/git": "^1.0.3",
+    "@types/express": "^4.17.0",
+    "@types/express-session": "^1.15.13",
     "@types/jest": "^24.0.15",
     "jest": "^24.8.0",
     "ts-jest": "^24.0.2"
