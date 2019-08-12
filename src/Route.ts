@@ -12,7 +12,7 @@ export type TRouteMethod = "get" | "post" | "patch" | "delete";
 /**
  * Type describing the REST parameter types
  */
-export type TRouteParameter = "string" | "number" | "boolean";
+export type TRouteParameter = "string" | "number" | "boolean" | "array";
 /**
  * Type describing a controller method
  */
@@ -69,6 +69,8 @@ function checkSetOptionalParameter(checker: ValidationChain, param: IRouteParame
  */
 function checkSetParameterType(checker: ValidationChain, param: IRouteParameter) {
     switch (param.type) {
+        case "array":
+            checker = checker.isArray();
         case "number":
             checker = checker.isNumeric();
             break;
