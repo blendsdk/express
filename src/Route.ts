@@ -2,7 +2,7 @@ import { forEach, isNullOrUndefDefault, wrapInArray } from "@blendsdk/stdlib";
 import { Express, Request, Response } from "express";
 import { RequestHandler } from "express-serve-static-core";
 import { check, param, ValidationChain } from "express-validator";
-import { withRequestValidation } from "./HttpResponse";
+import { HttpResponse, withRequestValidation } from "./HttpResponse";
 import { is_authenticated } from "./IsAuthenticated";
 
 /**
@@ -16,7 +16,7 @@ export type TRouteParameter = "string" | "number" | "boolean";
 /**
  * Type describing a controller method
  */
-export type TRouteController = (req: Request, res: Response) => Promise<void>;
+export type TRouteController = (req: Request, res: Response) => Promise<void> | HttpResponse;
 
 /**
  * Interface describing a route parameter
