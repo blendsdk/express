@@ -47,7 +47,6 @@ export interface IRoute {
     parameters: {
         [name: string]: IRouteParameter;
     };
-    response?: IRouteResponse;
 }
 
 /**
