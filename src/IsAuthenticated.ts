@@ -2,6 +2,52 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
 /**
+ * Interface for returning the token to the requester
+ *
+ * @export
+ * @interface IJwtTokenResult
+ */
+export interface IJwtTokenResult {
+    success: true;
+    token: string;
+}
+
+/**
+ * Interface for describing a minimal JWT
+ *
+ * @export
+ * @interface JWTData
+ */
+export interface JWTData {
+    maxAge?: number;
+    [name: string]: any;
+}
+
+/**
+ * Create and encode data as JWT
+ *
+ * @export
+ * @param {JWTData} details
+ * @returns {string}
+ */
+export function createJWToken(details: JWTData): string {
+    details = details || {};
+    details.sessionData = details.sessionData || {};
+    details.maxAge = parseInt((details.maxAge || process.env.JWT_MAX_AGE || 3600) as any);
+    delete details.password; // in case!
+    return jwt.sign(
+        {
+            data: details.sessionData
+        },
+        getJWTSecret(),
+        {
+            expiresIn: details.maxAge,
+            algorithm: "HS256"
+        }
+    );
+}
+
+/**
  * Get the JWT_SECRET provided from the .env file.
  *
  * @returns {string}
