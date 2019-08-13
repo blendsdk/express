@@ -1,8 +1,8 @@
-import { forEach, IDictionary, isNullOrUndefDefault, wrapInArray } from "@blendsdk/stdlib";
-import { Express, Request, Response } from "express";
+import { forEach, IDictionary, isNullOrUndefDefault, isObject, wrapInArray } from "@blendsdk/stdlib";
+import { Express, NextFunction, Request, Response } from "express";
 import { RequestHandler } from "express-serve-static-core";
 import { check, param, ValidationChain } from "express-validator";
-import { HttpResponse, withRequestValidation } from "./HttpResponse";
+import { HttpResponse, response, withRequestValidation } from "./HttpResponse";
 import { is_authenticated } from "./IsAuthenticated";
 
 /**
@@ -50,6 +50,31 @@ export interface IRoute {
 }
 
 /**
+ * Middleware to remove any parameters that is not part of the route
+ * definition.
+ *
+ * @param {IRoute} route
+ * @returns {RequestHandler}
+ */
+function routeParameter(route: IRoute): RequestHandler {
+    return (req: Request, res: Response, next: NextFunction) => {
+        const parts = ["body", "query"];
+        parts.forEach(partName => {
+            if (isObject(req[partName])) {
+                const newPart = {};
+                Object.keys(route.parameters).forEach(paramName => {
+                    if (req[partName][paramName] !== undefined) {
+                        newPart[paramName] = req[partName][paramName];
+                    }
+                });
+                req[partName] = newPart;
+            }
+        });
+        next();
+    };
+}
+
+/**
  * Checks and sets the validation "optional" flag
  *
  * @param {ValidationChain} checker
@@ -70,12 +95,13 @@ function checkSetOptionalParameter(checker: ValidationChain, param: IRouteParame
 function checkSetParameterType(checker: ValidationChain, param: IRouteParameter) {
     switch (param.type) {
         case "array":
-            checker = checker.isArray();
+            checker = checker.isArray().toArray();
+            break;
         case "number":
-            checker = checker.isNumeric();
+            checker = checker.isNumeric().toFloat();
             break;
         case "boolean":
-            checker = checker.isBoolean();
+            checker = checker.isBoolean().toBoolean();
             break;
         default:
             checker = checker.isString();
@@ -89,7 +115,7 @@ function checkSetParameterType(checker: ValidationChain, param: IRouteParameter)
  * @returns {RequestHandler[]}
  */
 function buildHandlers(route: IRoute): RequestHandler[] {
-    const result: RequestHandler[] = [];
+    const result: RequestHandler[] = [routeParameter(route)];
     route.secure = isNullOrUndefDefault(route.secure, true);
     route.parameters = route.parameters || {};
     // check if secure is needed
