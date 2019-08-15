@@ -182,3 +182,17 @@ export function authenticatedUser<T>(req: Request): T {
 export const response = (res: Response): HttpResponse => {
     return new HttpResponse(res);
 };
+
+/**
+ * Returns on object that is merged from the values
+ * provided from request body,params, and query
+ *
+ * @param req
+ */
+export const getParameters = <T>(req: Request): T => {
+    return {
+        ...req.body,
+        ...req.params,
+        ...req.query
+    } as T;
+};

@@ -58,7 +58,7 @@ export interface IRoute {
  */
 function routeParameter(route: IRoute): RequestHandler {
     return (req: Request, res: Response, next: NextFunction) => {
-        const parts = ["body", "query"];
+        const parts = ["body", "query", "params"];
         parts.forEach(partName => {
             if (isObject(req[partName])) {
                 const newPart = {};
