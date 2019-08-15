@@ -28,6 +28,7 @@ export interface IRouteParameter {
     type: TRouteParameter;
     message?: string;
     optional?: boolean;
+    array?: boolean;
 }
 
 export interface IRouteResponse {}
@@ -93,6 +94,7 @@ function checkSetOptionalParameter(checker: ValidationChain, param: IRouteParame
  * @param {IRouteParameter} param
  */
 function checkSetParameterType(checker: ValidationChain, param: IRouteParameter) {
+    param.type = param.array ? "array" : param.type;
     switch (param.type) {
         case "array":
             checker = checker.isArray().toArray();
