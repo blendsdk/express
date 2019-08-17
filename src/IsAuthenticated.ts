@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
@@ -24,6 +25,36 @@ export interface JWTData {
 }
 
 /**
+ * Encrypt the JWT token
+ *
+ * @param {string} data
+ * @returns {string}
+ */
+function encryptData(data: string): string {
+    try {
+        const cipher = crypto.createCipher("aes-256-cbc", getJWTSecret());
+        return Buffer.concat([cipher.update(new Buffer(data, "utf8")), cipher.final()]).toString("hex");
+    } catch (exception) {
+        throw new Error(exception.message);
+    }
+}
+
+/**
+ * Decrypt the JWT token
+ *
+ * @param {string} data
+ * @returns
+ */
+function decryptData(data: string) {
+    try {
+        const decipher = crypto.createDecipher("aes-256-cbc", getJWTSecret());
+        return Buffer.concat([decipher.update(new Buffer(data, "hex")), decipher.final()]).toString();
+    } catch (exception) {
+        throw new Error(exception.message);
+    }
+}
+
+/**
  * Create and encode data as JWT
  *
  * @export
@@ -35,15 +66,17 @@ export function createJWToken(details: JWTData): string {
     details.sessionData = details.sessionData || {};
     details.maxAge = parseInt((details.maxAge || process.env.JWT_MAX_AGE || 3600) as any);
     delete details.password; // in case!
-    return jwt.sign(
-        {
-            data: details.sessionData
-        },
-        getJWTSecret(),
-        {
-            expiresIn: details.maxAge,
-            algorithm: "HS256"
-        }
+    return encryptData(
+        jwt.sign(
+            {
+                data: details.sessionData
+            },
+            getJWTSecret(),
+            {
+                expiresIn: details.maxAge,
+                algorithm: "HS256"
+            }
+        )
     );
 }
 
@@ -70,7 +103,7 @@ export function getJWTSecret(): string {
  */
 export function verifyJWTToken(token: string) {
     return new Promise((resolve, reject) => {
-        jwt.verify(token, getJWTSecret(), (err, decodedToken) => {
+        jwt.verify(decryptData(token), getJWTSecret(), (err, decodedToken) => {
             if (err || !decodedToken) {
                 return reject(err);
             }
