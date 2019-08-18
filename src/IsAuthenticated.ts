@@ -25,7 +25,7 @@ export interface JWTData {
 }
 
 /**
- * Encrypt the JWT token
+ * Encrypt the JWT token¸
  *
  * @param {string} data
  * @returns {string}

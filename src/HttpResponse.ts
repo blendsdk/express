@@ -1,4 +1,4 @@
-import { apply } from "@blendsdk/stdlib";
+import { apply, IDictionary, isInstanceOf } from "@blendsdk/stdlib";
 import { isString } from "@blendsdk/stdlib/dist/isString";
 import { Request, RequestHandler, Response } from "express";
 import { Result, validationResult } from "express-validator";
@@ -16,11 +16,12 @@ export type TRequestHandler = (req?: Request, res?: Response) => void;
  * @export
  * @interface IResponseError
  */
-export interface IErrorResponse<T> {
-    error?: boolean;
-    code?: number;
-    type?: string;
-    message: T;
+export interface IErrorResponse {
+    error: boolean;
+    code: number;
+    type: string;
+    message: string;
+    metaData: IDictionary;
 }
 
 /**
@@ -70,13 +71,42 @@ export class HttpResponse {
         return this.response.status(HttpStatus.Success.OK).json(data);
     }
 
-    protected parseError(error: Error | string): any {
-        const err: Error = isString(error) ? new Error(error as string) : (error as Error);
+    /**
+     * Create metadata information from an Error object
+     *
+     * @protected
+     * @param {Error} error
+     * @returns {IDictionary}
+     * @memberof HttpResponse
+     */
+    protected getErrorMetaData(error: Error): IDictionary {
+        if (isInstanceOf(error, Error)) {
+            return {
+                name: error.name,
+                stack: error.stack
+            };
+        } else {
+            return {};
+        }
+    }
+
+    /**
+     * Creates an Error Response
+     *
+     * @protected
+     * @param {(Error | string)} error
+     * @param {number} errorCode
+     * @param {string} errorType
+     * @returns {IErrorResponse}
+     * @memberof HttpResponse
+     */
+    protected createErrorResponse(error: Error | string, errorCode: number, errorType: string): IErrorResponse {
         return {
-            ...err,
-            message: err.message,
-            name: err.name,
-            stack: err.stack
+            error: true,
+            code: errorCode,
+            type: errorType,
+            message: isInstanceOf(error, Error) ? (error as Error).message : (error as string),
+            metaData: isInstanceOf(error, Error) ? this.getErrorMetaData(error as Error) : {}
         };
     }
 
@@ -89,11 +119,16 @@ export class HttpResponse {
      */
     public validationError(errors: Result<any>) {
         debugger;
-        return this.error({
-            code: HttpStatus.ClientErrors.BadRequest,
-            type: "VALIDATION_ERROR",
-            message: errors.array()
-        });
+        const err = new Error(
+            errors
+                .array()
+                .map((e: any) => {
+                    return e.msg;
+                })
+                .join("\n")
+        );
+        err.stack = errors.mapped() as any;
+        return this.error(this.createErrorResponse(err, HttpStatus.ClientErrors.BadRequest, "VALIDATION_ERROR"));
     }
 
     /**
@@ -104,8 +139,7 @@ export class HttpResponse {
      * @returns {Response}
      * @memberof HttpResponse
      */
-    public error(err: IErrorResponse<any>): Response {
-        err.error = true;
+    public error(err: IErrorResponse): Response {
         logger.error(err);
         return this.response.status(err.code).json(err);
     }
@@ -118,11 +152,7 @@ export class HttpResponse {
      * @memberof HttpResponse
      */
     public serverError(error: Error | string): Response {
-        return this.error({
-            code: HttpStatus.ServerErrors.InternalServerError,
-            type: "SERVER_ERROR",
-            message: this.parseError(error)
-        });
+        return this.error(this.createErrorResponse(error, HttpStatus.ServerErrors.InternalServerError, "SERVER_ERROR"));
     }
 
     /**
@@ -133,11 +163,9 @@ export class HttpResponse {
      * @memberof HttpResponse
      */
     public unAuthorized(error: Error | string): Response {
-        return this.error({
-            code: HttpStatus.ClientErrors.Unauthorized,
-            type: "AUTH_ERROR",
-            message: this.parseError(error)
-        });
+        return this.error(
+            this.createErrorResponse(error, HttpStatus.ClientErrors.Unauthorized, "AUTHENTICATION_ERROR")
+        );
     }
 }
 
